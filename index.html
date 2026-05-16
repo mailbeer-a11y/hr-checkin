@@ -405,16 +405,26 @@ function onErr(err){
   document.getElementById('infoStrip').style.color='#f57f17';
 }
 
-function updateButtons(){
-  var ci=document.getElementById('btnCheckin'), co=document.getElementById('btnCheckout');
-  if(state.inRange){
-    ci.disabled=state.isCheckedIn;
-    co.disabled=!state.isCheckedIn;
-  } else {
-    ci.disabled=true; co.disabled=true;
-  }
-}
+function updateButtons() {
+  var ci = document.getElementById('btnCheckin');
+  var co = document.getElementById('btnCheckout');
+  
+  if (!ci || !co) return; // ป้องกัน Error
 
+  // 🟢 เงื่อนไขปุ่มเช็คอิน: จะกดได้ก็ต่อเมื่อ "อยู่ในพื้นที่" + "ยังไม่ได้เช็คอิน"
+  if (state.inRange === true && state.isCheckedIn === false) {
+    ci.disabled = false; // ปลดล็อกปุ่ม
+  } else {
+    ci.disabled = true;  // ล็อกปุ่ม
+  }
+  
+  // 🔴 เงื่อนไขปุ่มเช็คเอาต์: จะกดได้ขอแค่ "กำลังเช็คอินอยู่" (ถึงเดินออกนอกพื้นที่ไปแล้วก็กดได้)
+  if (state.isCheckedIn === true) {
+    co.disabled = false; // ปลดล็อกปุ่ม
+  } else {
+    co.disabled = true;  // ล็อกปุ่ม
+  }
+}
 // Check-in
 function doCheckin() {
   if (!state.inRange) { showToast('❌ ไม่สามารถเช็คอินได้ คุณอยู่นอกพื้นที่'); return; }
