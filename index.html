@@ -124,116 +124,144 @@ body{font-family:'Segoe UI',sans-serif;background:#f0f0f0;min-height:100vh;displ
 </head>
 <body>
 <div class="phone">
-  <!-- Header -->
-  <div class="header">
-    <div class="header-avatar">🏢</div>
-    <div class="header-info">
-      <div class="header-name" id="companyName">บริษัท ตัวอย่าง จำกัด</div>
-      <div class="header-sub" id="empName">พนักงาน: สมชาย ใจดี</div>
-    </div>
-  </div>
-  <div class="header" style="background:#05b84d;padding:0 16px;gap:0">
-    <div class="htab active" onclick="showPage('home',this)">หน้าหลัก</div>
-    <div class="htab" onclick="showPage('history',this)">ประวัติ</div>
+  <!-- Header -->
+  <div class="header">
+    <div class="header-avatar">🏢</div>
+    <div class="header-info">
+      <div class="header-name" id="companyName">บริษัท ตัวอย่าง จำกัด</div>
+      <div class="header-sub" id="empName">พนักงาน: สมชาย ใจดี</div>
+    </div>
+  </div>
+  <div class="header" style="background:#05b84d;padding:0 16px;gap:0">
+    <div class="htab active" onclick="showPage('home',this)">หน้าหลัก</div>
+    <div class="htab" onclick="showPage('history',this)">ประวัติ</div>
+    <div class="htab" onclick="showPage('settings',this)">ตั้งค่า</div>
+  </div>
+
+  <!-- PAGE: Home -->
+  <div id="page-home" class="page active">
+    <!-- Status -->
+    <div class="status-card">
+      <div class="status-top">
+        <div class="status-dot" id="statusDot" style="background:#ccc"></div>
+        <div>
+          <div class="status-label">สถานะปัจจุบัน</div>
+          <div class="status-val" id="statusText">ยังไม่ได้เช็คอิน</div>
+          <div class="status-time" id="statusTime">--</div>
+        </div>
+      </div>
+      <div class="loc-box">
+        <div class="loc-icon">📍</div>
+        <div class="loc-info">
+          <div class="loc-name" id="locName">กำลังตรวจสอบตำแหน่ง...</div>
+          <div class="loc-dist" id="locDist">ระยะห่างจากบริษัท: --</div>
+        </div>
+        <div class="loc-badge" id="locBadge" style="display:none"></div>
+      </div>
+    </div>
+
+    <!-- Map -->
+    <div class="map-area">
+      <div class="map-bg">
+        <div class="map-grid"></div>
+        <div class="map-radius"></div>
+        <div class="map-office"><div class="map-pin-office"></div><div class="map-label">บริษัท</div></div>
+        <div class="map-user" id="mapUser"></div>
+        <div class="map-accuracy-label" id="accuracyLabel">ความแม่นยำ: --</div>
+      </div>
+    </div>
+
+    <!-- Info -->
+    <div class="info-strip" id="infoStrip">
+      ⏳ กำลังขอสิทธิ์ GPS กรุณาอนุญาตการเข้าถึงตำแหน่ง
+    </div>
+
+    <!-- Buttons -->
+    <div class="btn-area">
+      <button class="btn-checkin" id="btnCheckin" onclick="doCheckin()" disabled>
+        <div class="btn-icon">🟢</div>
+        เช็คอิน
+        <div class="btn-sub">บันทึกเวลาเข้างาน</div>
+      </button>
+      <button class="btn-checkout" id="btnCheckout" onclick="doCheckout()" disabled>
+        <div class="btn-icon">🔴</div>
+        เช็คเอาต์
+        <div class="btn-sub">บันทึกเวลาออกงาน</div>
+      </button>
+    </div>
+
+    <!-- Today summary -->
+    <div class="summary-grid">
+      <div class="sum-card">
+        <div class="sum-val" id="todayIn">--</div>
+        <div class="sum-label">เวลาเข้างานวันนี้</div>
+      </div>
+      <div class="sum-card">
+        <div class="sum-val" id="todayOut">--</div>
+        <div class="sum-label">เวลาออกงานล่าสุด</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE: History -->
+  <div id="page-history" class="page">
+    <div class="hist-header">
+      ประวัติการลงเวลา
+      <span class="hist-clear" onclick="clearHistory()">ล้างประวัติ</span>
+    </div>
+    <div class="hist-list" id="histList">
+      <div class="hist-empty">ยังไม่มีประวัติการลงเวลา</div>
+    </div>
+  </div>
+
+  <!-- PAGE: Settings -->
+  <div id="page-settings" class="page">
+    <div class="setting-section">ข้อมูลบริษัท</div>
+    <div class="setting-item">
+      <div class="setting-label">ชื่อบริษัท</div>
+      <input class="setting-input" id="inputCompany" value="ร้านไพศาลพานิช" placeholder="ชื่อบริษัท">
+    </div>
+    <div class="setting-item">
+      <div class="setting-label">ชื่อพนักงาน</div>
+      <input class="setting-input" id="inputEmp" value="จิตติ พุ่มไพศาลชัย" placeholder="ชื่อ-นามสกุล">
+    </div>
+
+<div class="setting-section">ตำแหน่งบริษัท (Geofence)</div>
     
-  </div>
-
-  <!-- PAGE: Home -->
-  <div id="page-home" class="page active">
-    <!-- Status -->
-    <div class="status-card">
-      <div class="status-top">
-        <div class="status-dot" id="statusDot" style="background:#ccc"></div>
-        <div>
-          <div class="status-label">สถานะปัจจุบัน</div>
-          <div class="status-val" id="statusText">ยังไม่ได้เช็คอิน</div>
-          <div class="status-time" id="statusTime">--</div>
-        </div>
-      </div>
-      <div class="loc-box">
-        <div class="loc-icon">📍</div>
-        <div class="loc-info">
-          <div class="loc-name" id="locName">กำลังตรวจสอบตำแหน่ง...</div>
-          <div class="loc-dist" id="locDist">ระยะห่างจากบริษัท: --</div>
-        </div>
-        <div class="loc-badge" id="locBadge" style="display:none"></div>
-      </div>
-    </div>
-
-    <!-- Map -->
-    <div class="map-area">
-      <div class="map-bg">
-        <div class="map-grid"></div>
-        <div class="map-radius"></div>
-        <div class="map-office"><div class="map-pin-office"></div><div class="map-label">บริษัท</div></div>
-        <div class="map-user" id="mapUser"></div>
-        <div class="map-accuracy-label" id="accuracyLabel">ความแม่นยำ: --</div>
-      </div>
-    </div>
-
-    <!-- Info -->
-    <div class="info-strip" id="infoStrip">
-      ⏳ กำลังขอสิทธิ์ GPS กรุณาอนุญาตการเข้าถึงตำแหน่ง
-    </div>
-
-    <!-- Buttons -->
-    <div class="btn-area">
-      <button class="btn-checkin" id="btnCheckin" onclick="doCheckin()" disabled>
-        <div class="btn-icon">🟢</div>
-        เช็คอิน
-        <div class="btn-sub">บันทึกเวลาเข้างาน</div>
-      </button>
-      <button class="btn-checkout" id="btnCheckout" onclick="doCheckout()" disabled>
-        <div class="btn-icon">🔴</div>
-        เช็คเอาต์
-        <div class="btn-sub">บันทึกเวลาออกงาน</div>
-      </button>
-    </div>
-
-    <!-- Today summary -->
-    <div class="summary-grid">
-      <div class="sum-card">
-        <div class="sum-val" id="todayIn">--</div>
-        <div class="sum-label">เวลาเข้างานวันนี้</div>
-      </div>
-      <div class="sum-card">
-        <div class="sum-val" id="todayOut">--</div>
-        <div class="sum-label">เวลาออกงานล่าสุด</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- PAGE: History -->
-  <div id="page-history" class="page">
-    <div class="hist-header">
-      ประวัติการลงเวลา
-      <span class="hist-clear" onclick="clearHistory()">ล้างประวัติ</span>
-    </div>
-    <div class="hist-list" id="histList">
-      <div class="hist-empty">ยังไม่มีประวัติการลงเวลา</div>
-    </div>
-  </div>
-
-  <!-- PAGE: Settings -->
-  
     <div class="setting-item">
-      <div class="setting-label">ชื่อพนักงาน</div>
-      <input class="setting-input" id="inputEmp" value="จิตติ" placeholder="ชื่อ">
+      <div class="setting-label">Latitude บริษัท</div>
+      <div class="setting-sub">พิกัดละติจูดของที่ตั้งบริษัท</div>
+      <!-- เติม readonly และเปลี่ยนสีพื้นหลังให้ดูเหมือนถูกล็อคอยู่ -->
+      <input class="setting-input" id="inputLat" value="15.8662189" readonly style="background-color:#f5f5f5; color:#888; cursor:not-allowed;">
+    </div>
+    
+    <div class="setting-item">
+      <div class="setting-label">Longitude บริษัท</div>
+      <div class="setting-sub">พิกัดลองจิจูดของที่ตั้งบริษัท</div>
+      <input class="setting-input" id="inputLng" value="100.5847802" readonly style="background-color:#f5f5f5; color:#888; cursor:not-allowed;">
+    </div>
+    
+    <div class="setting-item">
+      <div class="setting-label">รัศมีที่อนุญาต (เมตร)</div>
+      <div class="setting-sub">ระยะห่างสูงสุดที่พนักงานสามารถเช็คอินได้</div>
+      <input class="setting-input" id="inputRadius" value="200" readonly style="background-color:#f5f5f5; color:#888; cursor:not-allowed;">
+      
+      <!-- ลบปุ่ม "บันทึกการตั้งค่า" ออกจากตรงนี้แล้ว เพื่อไม่ให้พนักงานกดเล่น -->
     </div>
 
-
-
-</div><!-- /phone -->
+    <!-- ลบส่วน "ใช้ตำแหน่งปัจจุบันเป็นบริษัท" ออกไปเลย เพื่อป้องกันพนักงานเปลี่ยนพิกัดเอง --><!-- /phone -->
 
 <!-- Bottom Nav -->
 <div class="bottom-nav">
-  <button class="nav-item active" id="nav-home" onclick="showPage('home',null,'nav-home')">
-    <div class="nav-icon">🏠</div>หน้าหลัก
-  </button>
-  <button class="nav-item" id="nav-history" onclick="showPage('history',null,'nav-history')">
-    <div class="nav-icon">📋</div>ประวัติ
-  </button>
-  
+  <button class="nav-item active" id="nav-home" onclick="showPage('home',null,'nav-home')">
+    <div class="nav-icon">🏠</div>หน้าหลัก
+  </button>
+  <button class="nav-item" id="nav-history" onclick="showPage('history',null,'nav-history')">
+    <div class="nav-icon">📋</div>ประวัติ
+  </button>
+  <button class="nav-item" id="nav-settings" onclick="showPage('settings',null,'nav-settings')">
+    <div class="nav-icon">⚙️</div>ตั้งค่า
+  </button>
 </div>
 
 <div class="loading" id="loading"><div class="spinner"></div><span id="loadingText">กำลังดึงตำแหน่ง...</span></div>
@@ -246,17 +274,14 @@ const LIFF_ID = "2010063740-honG4FMh";
 const GAS_URL = "https://script.google.com/macros/s/AKfycbz38705Xib9gsh6I9Ni6pIbDxsQtdbwFYnjEleJvAxyZoPZj3C5E8MPjas0purp4DsTwg/exec";
 
 var state = {
-  lat: null, lng: null, accuracy: null,
-  // ล็อกค่าพิกัดบริษัทและรัศมีตายตัว (ใส่ตัวเลขจริงของคุณได้เลย)
-  officeLat: 15.8662189,  
-  officeLng: 100.5847802, 
-  radius: 500,         
-  inRange: false, isCheckedIn: false,
-  records: JSON.parse(localStorage.getItem('records')||'[]'),
-  // ล็อกชื่อบริษัทตายตัว
-  company: 'ร้านไพศาลพานิช', 
-  // (สำหรับชื่อพนักงาน ถ้าคุณใช้ LIFF เดี๋ยวค่อยเขียนโค้ดให้ดึงจาก LINE Profile แทนได้ชั่วคราวล็อกไว้ก่อน)
-  emp: 'พนักงานทั่วไป' 
+  lat: null, lng: null, accuracy: null,
+  officeLat: parseFloat(localStorage.getItem('officeLat')||'15.8662189'),
+  officeLng: parseFloat(localStorage.getItem('officeLng')||'100.5847802'),
+  radius: parseFloat(localStorage.getItem('radius')||'300'),
+  inRange: false, isCheckedIn: false,
+  records: JSON.parse(localStorage.getItem('records')||'[]'),
+  company: localStorage.getItem('company')||'ร้านไพศาลพานิช',
+  emp: localStorage.getItem('emp')||'จิตติ พุ่มไพศาลชัย'
 };
 
 // Init UI from saved settings
@@ -273,73 +298,73 @@ loadTodaySummary();
 
 // Calculate distance (Haversine)
 function calcDist(lat1,lng1,lat2,lng2){
-  var R=6371000,dLat=(lat2-lat1)*Math.PI/180,dLng=(lng2-lng1)*Math.PI/180;
-  var a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)*Math.sin(dLng/2);
-  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+  var R=6371000,dLat=(lat2-lat1)*Math.PI/180,dLng=(lng2-lng1)*Math.PI/180;
+  var a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)*Math.sin(dLng/2);
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
 
 // GPS
 function startGPS(){
-  if(!navigator.geolocation){
-    document.getElementById('locName').textContent='ไม่รองรับ GPS';
-    document.getElementById('infoStrip').textContent='⚠️ เบราว์เซอร์นี้ไม่รองรับ GPS';
-    return;
-  }
-  navigator.geolocation.watchPosition(onPos, onErr, {enableHighAccuracy:true,timeout:15000,maximumAge:5000});
+  if(!navigator.geolocation){
+    document.getElementById('locName').textContent='ไม่รองรับ GPS';
+    document.getElementById('infoStrip').textContent='⚠️ เบราว์เซอร์นี้ไม่รองรับ GPS';
+    return;
+  }
+  navigator.geolocation.watchPosition(onPos, onErr, {enableHighAccuracy:true,timeout:15000,maximumAge:5000});
 }
 
 function onPos(pos){
-  state.lat=pos.coords.latitude;
-  state.lng=pos.coords.longitude;
-  state.accuracy=Math.round(pos.coords.accuracy);
-  var dist=Math.round(calcDist(state.lat,state.lng,state.officeLat,state.officeLng));
-  state.inRange=dist<=state.radius;
+  state.lat=pos.coords.latitude;
+  state.lng=pos.coords.longitude;
+  state.accuracy=Math.round(pos.coords.accuracy);
+  var dist=Math.round(calcDist(state.lat,state.lng,state.officeLat,state.officeLng));
+  state.inRange=dist<=state.radius;
 
-  document.getElementById('locName').textContent='ตำแหน่ง: '+state.lat.toFixed(5)+', '+state.lng.toFixed(5);
-  document.getElementById('locDist').textContent='ระยะห่างจากบริษัท: '+dist+' เมตร (รัศมีที่อนุญาต: '+state.radius+' ม.)';
-  document.getElementById('accuracyLabel').textContent='ความแม่นยำ: ±'+state.accuracy+' ม.';
+  document.getElementById('locName').textContent='ตำแหน่ง: '+state.lat.toFixed(5)+', '+state.lng.toFixed(5);
+  document.getElementById('locDist').textContent='ระยะห่างจากบริษัท: '+dist+' เมตร (รัศมีที่อนุญาต: '+state.radius+' ม.)';
+  document.getElementById('accuracyLabel').textContent='ความแม่นยำ: ±'+state.accuracy+' ม.';
 
-  var badge=document.getElementById('locBadge');
-  badge.style.display='block';
-  if(state.inRange){
-    badge.className='loc-badge badge-ok';badge.textContent='✅ อยู่ในพื้นที่';
-    document.getElementById('infoStrip').innerHTML='✅ คุณอยู่ในรัศมีที่กำหนด สามารถลงเวลาได้';
-    document.getElementById('infoStrip').style.background='#e6faf0';
-    document.getElementById('infoStrip').style.color='#085041';
-  } else {
-    badge.className='loc-badge badge-no';badge.textContent='❌ นอกพื้นที่';
-    document.getElementById('infoStrip').innerHTML='❌ คุณอยู่ห่างจากบริษัท '+dist+' เมตร เกินรัศมีที่กำหนด ('+state.radius+' ม.)';
-    document.getElementById('infoStrip').style.background='#fde8e8';
-    document.getElementById('infoStrip').style.color='#c62828';
-  }
+  var badge=document.getElementById('locBadge');
+  badge.style.display='block';
+  if(state.inRange){
+    badge.className='loc-badge badge-ok';badge.textContent='✅ อยู่ในพื้นที่';
+    document.getElementById('infoStrip').innerHTML='✅ คุณอยู่ในรัศมีที่กำหนด สามารถลงเวลาได้';
+    document.getElementById('infoStrip').style.background='#e6faf0';
+    document.getElementById('infoStrip').style.color='#085041';
+  } else {
+    badge.className='loc-badge badge-no';badge.textContent='❌ นอกพื้นที่';
+    document.getElementById('infoStrip').innerHTML='❌ คุณอยู่ห่างจากบริษัท '+dist+' เมตร เกินรัศมีที่กำหนด ('+state.radius+' ม.)';
+    document.getElementById('infoStrip').style.background='#fde8e8';
+    document.getElementById('infoStrip').style.color='#c62828';
+  }
 
-  // Update map user marker position (simulate offset)
-  var userEl=document.getElementById('mapUser');
-  var ox=Math.min(60,Math.max(-60,(state.lng-state.officeLng)*8000));
-  var oy=Math.min(60,Math.max(-60,(state.officeLat-state.lat)*8000));
-  userEl.style.left='calc(50% + '+ox+'px)';
-  userEl.style.top='calc(50% + '+oy+'px)';
-  userEl.style.display='block';
+  // Update map user marker position (simulate offset)
+  var userEl=document.getElementById('mapUser');
+  var ox=Math.min(60,Math.max(-60,(state.lng-state.officeLng)*8000));
+  var oy=Math.min(60,Math.max(-60,(state.officeLat-state.lat)*8000));
+  userEl.style.left='calc(50% + '+ox+'px)';
+  userEl.style.top='calc(50% + '+oy+'px)';
+  userEl.style.display='block';
 
-  // Enable buttons based on status
-  updateButtons();
+  // Enable buttons based on status
+  updateButtons();
 }
 
 function onErr(err){
-  document.getElementById('locName').textContent='ไม่สามารถดึงตำแหน่งได้';
-  document.getElementById('infoStrip').innerHTML='⚠️ '+err.message+' — ลองกดอนุญาต GPS ใหม่';
-  document.getElementById('infoStrip').style.background='#fff8e1';
-  document.getElementById('infoStrip').style.color='#f57f17';
+  document.getElementById('locName').textContent='ไม่สามารถดึงตำแหน่งได้';
+  document.getElementById('infoStrip').innerHTML='⚠️ '+err.message+' — ลองกดอนุญาต GPS ใหม่';
+  document.getElementById('infoStrip').style.background='#fff8e1';
+  document.getElementById('infoStrip').style.color='#f57f17';
 }
 
 function updateButtons(){
-  var ci=document.getElementById('btnCheckin'), co=document.getElementById('btnCheckout');
-  if(state.inRange){
-    ci.disabled=state.isCheckedIn;
-    co.disabled=!state.isCheckedIn;
-  } else {
-    ci.disabled=true; co.disabled=true;
-  }
+  var ci=document.getElementById('btnCheckin'), co=document.getElementById('btnCheckout');
+  if(state.inRange){
+    ci.disabled=state.isCheckedIn;
+    co.disabled=!state.isCheckedIn;
+  } else {
+    ci.disabled=true; co.disabled=true;
+  }
 }
 
 // Check-in
@@ -430,73 +455,73 @@ function doCheckout() {
 }
 
 function updateStatusUI(dt,type){
-  var dot=document.getElementById('statusDot');
-  var txt=document.getElementById('statusText');
-  var time=document.getElementById('statusTime');
-  if(type==='in'){
-    dot.className='status-dot dot-in';
-    txt.textContent='กำลังทำงาน';
-    time.textContent='เช็คอินเมื่อ: '+fmtTime(dt)+' น. ('+fmtDate(dt)+')';
-  } else {
-    dot.className='status-dot dot-out';
-    txt.textContent='ออกงานแล้ว';
-    time.textContent='เช็คเอาต์เมื่อ: '+fmtTime(dt)+' น. ('+fmtDate(dt)+')';
-  }
+  var dot=document.getElementById('statusDot');
+  var txt=document.getElementById('statusText');
+  var time=document.getElementById('statusTime');
+  if(type==='in'){
+    dot.className='status-dot dot-in';
+    txt.textContent='กำลังทำงาน';
+    time.textContent='เช็คอินเมื่อ: '+fmtTime(dt)+' น. ('+fmtDate(dt)+')';
+  } else {
+    dot.className='status-dot dot-out';
+    txt.textContent='ออกงานแล้ว';
+    time.textContent='เช็คเอาต์เมื่อ: '+fmtTime(dt)+' น. ('+fmtDate(dt)+')';
+  }
 }
 
 function loadTodaySummary(){
-  var today=new Date().toDateString();
-  var ins=state.records.filter(function(r){return r.type==='in'&&new Date(r.time).toDateString()===today});
-  var outs=state.records.filter(function(r){return r.type==='out'&&new Date(r.time).toDateString()===today});
-  document.getElementById('todayIn').textContent=ins.length?fmtTime(new Date(ins[ins.length-1].time)):'--';
-  document.getElementById('todayOut').textContent=outs.length?fmtTime(new Date(outs[0].time)):'--';
+  var today=new Date().toDateString();
+  var ins=state.records.filter(function(r){return r.type==='in'&&new Date(r.time).toDateString()===today});
+  var outs=state.records.filter(function(r){return r.type==='out'&&new Date(r.time).toDateString()===today});
+  document.getElementById('todayIn').textContent=ins.length?fmtTime(new Date(ins[ins.length-1].time)):'--';
+  document.getElementById('todayOut').textContent=outs.length?fmtTime(new Date(outs[0].time)):'--';
 }
 
 function renderHistory(){
-  var el=document.getElementById('histList');
-  if(!state.records.length){el.innerHTML='<div class="hist-empty">ยังไม่มีประวัติการลงเวลา</div>';return;}
-  el.innerHTML=state.records.map(function(r){
-    var dt=new Date(r.time);
-    var icon=r.type==='in'?'🟢':'🔴';
-    var label=r.type==='in'?'เช็คอิน':'เช็คเอาต์';
-    var iconClass=r.type==='in'?'hist-icon-in':'hist-icon-out';
-    var badge=r.inRange?'<span class="hist-badge hist-badge-ok">อยู่ในพื้นที่</span>':'<span class="hist-badge hist-badge-no">นอกพื้นที่</span>';
-    var coords=r.lat?r.lat.toFixed(4)+', '+r.lng.toFixed(4):'ไม่ทราบตำแหน่ง';
-    return '<div class="hist-item"><div class="hist-icon '+iconClass+'">'+icon+'</div><div class="hist-detail"><div class="hist-type">'+label+'</div><div class="hist-time">'+fmtTime(dt)+' น. — '+fmtDate(dt)+'</div><div class="hist-loc">📍 '+coords+'</div></div>'+badge+'</div>';
-  }).join('');
+  var el=document.getElementById('histList');
+  if(!state.records.length){el.innerHTML='<div class="hist-empty">ยังไม่มีประวัติการลงเวลา</div>';return;}
+  el.innerHTML=state.records.map(function(r){
+    var dt=new Date(r.time);
+    var icon=r.type==='in'?'🟢':'🔴';
+    var label=r.type==='in'?'เช็คอิน':'เช็คเอาต์';
+    var iconClass=r.type==='in'?'hist-icon-in':'hist-icon-out';
+    var badge=r.inRange?'<span class="hist-badge hist-badge-ok">อยู่ในพื้นที่</span>':'<span class="hist-badge hist-badge-no">นอกพื้นที่</span>';
+    var coords=r.lat?r.lat.toFixed(4)+', '+r.lng.toFixed(4):'ไม่ทราบตำแหน่ง';
+    return '<div class="hist-item"><div class="hist-icon '+iconClass+'">'+icon+'</div><div class="hist-detail"><div class="hist-type">'+label+'</div><div class="hist-time">'+fmtTime(dt)+' น. — '+fmtDate(dt)+'</div><div class="hist-loc">📍 '+coords+'</div></div>'+badge+'</div>';
+  }).join('');
 }
 
 function clearHistory(){
-  if(confirm('ต้องการล้างประวัติทั้งหมดใช่ไหม?')){
-    state.records=[];state.isCheckedIn=false;save();renderHistory();loadTodaySummary();
-    document.getElementById('statusDot').style.background='#ccc';
-    document.getElementById('statusText').textContent='ยังไม่ได้เช็คอิน';
-    document.getElementById('statusTime').textContent='--';
-    updateButtons();showToast('🗑️ ล้างประวัติแล้ว');
-  }
+  if(confirm('ต้องการล้างประวัติทั้งหมดใช่ไหม?')){
+    state.records=[];state.isCheckedIn=false;save();renderHistory();loadTodaySummary();
+    document.getElementById('statusDot').style.background='#ccc';
+    document.getElementById('statusText').textContent='ยังไม่ได้เช็คอิน';
+    document.getElementById('statusTime').textContent='--';
+    updateButtons();showToast('🗑️ ล้างประวัติแล้ว');
+  }
 }
 
 function saveSettings(){
-  state.company=document.getElementById('inputCompany').value;
-  state.emp=document.getElementById('inputEmp').value;
-  state.officeLat=parseFloat(document.getElementById('inputLat').value)||13.7563;
-  state.officeLng=parseFloat(document.getElementById('inputLng').value)||100.5018;
-  state.radius=parseFloat(document.getElementById('inputRadius').value)||200;
-  localStorage.setItem('company',state.company);
-  localStorage.setItem('emp',state.emp);
-  localStorage.setItem('officeLat',state.officeLat);
-  localStorage.setItem('officeLng',state.officeLng);
-  localStorage.setItem('radius',state.radius);
-  document.getElementById('companyName').textContent=state.company;
-  document.getElementById('empName').textContent='พนักงาน: '+state.emp;
-  showToast('💾 บันทึกการตั้งค่าแล้ว');
+  state.company=document.getElementById('inputCompany').value;
+  state.emp=document.getElementById('inputEmp').value;
+  state.officeLat=parseFloat(document.getElementById('inputLat').value)||13.7563;
+  state.officeLng=parseFloat(document.getElementById('inputLng').value)||100.5018;
+  state.radius=parseFloat(document.getElementById('inputRadius').value)||200;
+  localStorage.setItem('company',state.company);
+  localStorage.setItem('emp',state.emp);
+  localStorage.setItem('officeLat',state.officeLat);
+  localStorage.setItem('officeLng',state.officeLng);
+  localStorage.setItem('radius',state.radius);
+  document.getElementById('companyName').textContent=state.company;
+  document.getElementById('empName').textContent='พนักงาน: '+state.emp;
+  showToast('💾 บันทึกการตั้งค่าแล้ว');
 }
 
 function useCurrentAsOffice(){
-  if(!state.lat){showToast('⚠️ ยังไม่ได้รับตำแหน่ง GPS');return;}
-  document.getElementById('inputLat').value=state.lat.toFixed(6);
-  document.getElementById('inputLng').value=state.lng.toFixed(6);
-  showToast('📍 ตั้งค่าตำแหน่งปัจจุบันเป็นบริษัทแล้ว กด บันทึก');
+  if(!state.lat){showToast('⚠️ ยังไม่ได้รับตำแหน่ง GPS');return;}
+  document.getElementById('inputLat').value=state.lat.toFixed(6);
+  document.getElementById('inputLng').value=state.lng.toFixed(6);
+  showToast('📍 ตั้งค่าตำแหน่งปัจจุบันเป็นบริษัทแล้ว กด บันทึก');
 }
 
 function save(){localStorage.setItem('records',JSON.stringify(state.records));}
@@ -504,15 +529,15 @@ function save(){localStorage.setItem('records',JSON.stringify(state.records));}
 // Page switching
 var tabs=['home','history','settings'];
 function showPage(page,tabEl,navId){
-  tabs.forEach(function(t){
-    document.getElementById('page-'+t).classList.remove('active');
-    var nav=document.getElementById('nav-'+t);
-    if(nav)nav.classList.remove('active');
-  });
-  document.querySelectorAll('.htab').forEach(function(t){t.classList.remove('active');});
-  document.getElementById('page-'+page).classList.add('active');
-  if(tabEl)tabEl.classList.add('active');
-  if(navId)document.getElementById(navId).classList.add('active');
+  tabs.forEach(function(t){
+    document.getElementById('page-'+t).classList.remove('active');
+    var nav=document.getElementById('nav-'+t);
+    if(nav)nav.classList.remove('active');
+  });
+  document.querySelectorAll('.htab').forEach(function(t){t.classList.remove('active');});
+  document.getElementById('page-'+page).classList.add('active');
+  if(tabEl)tabEl.classList.add('active');
+  if(navId)document.getElementById(navId).classList.add('active');
 }
 
 // Helpers
