@@ -135,7 +135,7 @@ body{font-family:'Segoe UI',sans-serif;background:#f0f0f0;min-height:100vh;displ
   <div class="header" style="background:#05b84d;padding:0 16px;gap:0">
     <div class="htab active" onclick="showPage('home',this)">หน้าหลัก</div>
     <div class="htab" onclick="showPage('history',this)">ประวัติ</div>
-    <div class="htab" onclick="showPage('settings',this)">ตั้งค่า</div>
+    
   </div>
 
   <!-- PAGE: Home -->
@@ -215,41 +215,13 @@ body{font-family:'Segoe UI',sans-serif;background:#f0f0f0;min-height:100vh;displ
   </div>
 
   <!-- PAGE: Settings -->
-  <div id="page-settings" class="page">
-    <div class="setting-section">ข้อมูลบริษัท</div>
-    <div class="setting-item">
-      <div class="setting-label">ชื่อบริษัท</div>
-      <input class="setting-input" id="inputCompany" value="บริษัท ตัวอย่าง จำกัด" placeholder="ชื่อบริษัท">
-    </div>
+  
     <div class="setting-item">
       <div class="setting-label">ชื่อพนักงาน</div>
-      <input class="setting-input" id="inputEmp" value="สมชาย ใจดี" placeholder="ชื่อ-นามสกุล">
+      <input class="setting-input" id="inputEmp" value="จิตติ" placeholder="ชื่อ">
     </div>
 
-    <div class="setting-section">ตำแหน่งบริษัท (Geofence)</div>
-    <div class="setting-item">
-      <div class="setting-label">Latitude บริษัท</div>
-      <div class="setting-sub">พิกัดละติจูดของที่ตั้งบริษัท</div>
-      <input class="setting-input" id="inputLat" value="13.7563" placeholder="เช่น 13.7563">
-    </div>
-    <div class="setting-item">
-      <div class="setting-label">Longitude บริษัท</div>
-      <div class="setting-sub">พิกัดลองจิจูดของที่ตั้งบริษัท</div>
-      <input class="setting-input" id="inputLng" value="100.5018" placeholder="เช่น 100.5018">
-    </div>
-    <div class="setting-item">
-      <div class="setting-label">รัศมีที่อนุญาต (เมตร)</div>
-      <div class="setting-sub">ระยะห่างสูงสุดที่พนักงานสามารถเช็คอินได้</div>
-      <input class="setting-input" id="inputRadius" value="200" placeholder="เช่น 200" type="number">
-      <button class="save-btn" onclick="saveSettings()" style="margin-top:12px">💾 บันทึกการตั้งค่า</button>
-    </div>
 
-    <div class="setting-section">ใช้ตำแหน่งปัจจุบันเป็นบริษัท</div>
-    <div class="setting-item">
-      <div class="setting-sub">กดปุ่มด้านล่างเพื่อตั้งค่าตำแหน่งปัจจุบันของคุณเป็นที่ตั้งบริษัท (สะดวกสำหรับการทดสอบ)</div>
-      <button class="save-btn" onclick="useCurrentAsOffice()">📍 ใช้ตำแหน่งปัจจุบันเป็นบริษัท</button>
-    </div>
-  </div>
 
 </div><!-- /phone -->
 
@@ -261,9 +233,7 @@ body{font-family:'Segoe UI',sans-serif;background:#f0f0f0;min-height:100vh;displ
   <button class="nav-item" id="nav-history" onclick="showPage('history',null,'nav-history')">
     <div class="nav-icon">📋</div>ประวัติ
   </button>
-  <button class="nav-item" id="nav-settings" onclick="showPage('settings',null,'nav-settings')">
-    <div class="nav-icon">⚙️</div>ตั้งค่า
-  </button>
+  
 </div>
 
 <div class="loading" id="loading"><div class="spinner"></div><span id="loadingText">กำลังดึงตำแหน่ง...</span></div>
@@ -277,13 +247,16 @@ const GAS_URL = "https://script.google.com/macros/s/AKfycbz38705Xib9gsh6I9Ni6pIb
 
 var state = {
   lat: null, lng: null, accuracy: null,
-  officeLat: parseFloat(localStorage.getItem('officeLat')||'13.7563'),
-  officeLng: parseFloat(localStorage.getItem('officeLng')||'100.5018'),
-  radius: parseFloat(localStorage.getItem('radius')||'200'),
+  // ล็อกค่าพิกัดบริษัทและรัศมีตายตัว (ใส่ตัวเลขจริงของคุณได้เลย)
+  officeLat: 15.866294,  
+  officeLng: 100.584579, 
+  radius: 200,         
   inRange: false, isCheckedIn: false,
   records: JSON.parse(localStorage.getItem('records')||'[]'),
-  company: localStorage.getItem('company')||'บริษัท ตัวอย่าง จำกัด',
-  emp: localStorage.getItem('emp')||'สมชาย ใจดี'
+  // ล็อกชื่อบริษัทตายตัว
+  company: 'ร้านไพศาลพานิช', 
+  // (สำหรับชื่อพนักงาน ถ้าคุณใช้ LIFF เดี๋ยวค่อยเขียนโค้ดให้ดึงจาก LINE Profile แทนได้ชั่วคราวล็อกไว้ก่อน)
+  emp: 'พนักงานทั่วไป' 
 };
 
 // Init UI from saved settings
