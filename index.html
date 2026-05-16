@@ -1,12 +1,242 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:#f0f0f0;min-height:100vh;display:flex;flex-direction:column;align-items:center}
+.phone{width:100%;max-width:390px;min-height:100vh;background:#fff;display:flex;flex-direction:column;position:relative;overflow:hidden}
+
+/* Header */
+.header{background:#06C755;color:#fff;padding:14px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.header-avatar{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:18px}
+.header-info{flex:1}
+.header-name{font-size:15px;font-weight:600}
+.header-sub{font-size:11px;opacity:.8}
+.header-tabs{display:flex;gap:0}
+.htab{padding:6px 14px;font-size:12px;color:rgba(255,255,255,.7);cursor:pointer;border-bottom:2px solid transparent}
+.htab.active{color:#fff;border-bottom-color:#fff;font-weight:600}
+
+/* Pages */
+.page{display:none;flex:1;overflow-y:auto;padding-bottom:70px}
+.page.active{display:block}
+
+/* Status Card */
+.status-card{margin:14px;background:#fff;border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,.08);overflow:hidden}
+.status-top{padding:16px;display:flex;align-items:center;gap:12px}
+.status-dot{width:14px;height:14px;border-radius:50%;flex-shrink:0}
+.dot-in{background:#06C755;box-shadow:0 0 0 4px rgba(6,199,85,.2)}
+.dot-out{background:#ccc}
+.status-label{font-size:13px;color:#888}
+.status-val{font-size:16px;font-weight:700;color:#222}
+.status-time{font-size:12px;color:#aaa;margin-top:2px}
+
+/* Location box */
+.loc-box{background:#f8f8f8;border-top:1px solid #eee;padding:12px 16px;display:flex;align-items:center;gap:10px}
+.loc-icon{font-size:20px}
+.loc-info{flex:1}
+.loc-name{font-size:13px;font-weight:600;color:#333}
+.loc-dist{font-size:12px;color:#888}
+.loc-badge{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-ok{background:#e6faf0;color:#06C755}
+.badge-no{background:#fde8e8;color:#e53935}
+
+/* Map mock */
+.map-area{margin:0 14px 14px;border-radius:12px;overflow:hidden;height:160px;background:#e8f5e9;position:relative;border:1px solid #ddd}
+.map-bg{width:100%;height:100%;background:linear-gradient(135deg,#c8e6c9 0%,#a5d6a7 50%,#c8e6c9 100%);position:relative}
+.map-grid{position:absolute;inset:0;background-image:repeating-linear-gradient(0deg,rgba(0,0,0,.04) 0,rgba(0,0,0,.04) 1px,transparent 1px,transparent 32px),repeating-linear-gradient(90deg,rgba(0,0,0,.04) 0,rgba(0,0,0,.04) 1px,transparent 1px,transparent 32px)}
+.map-office{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center}
+.map-pin-office{width:32px;height:32px;background:#06C755;border-radius:50% 50% 50% 0;transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.map-pin-office::after{content:'🏢';transform:rotate(45deg);font-size:14px;display:block}
+.map-label{margin-top:6px;background:#fff;border-radius:6px;padding:2px 8px;font-size:10px;font-weight:600;color:#333;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+.map-user{position:absolute;width:20px;height:20px;background:#1565C0;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.4);top:35%;left:35%}
+.map-user::before{content:'';position:absolute;inset:-6px;border-radius:50%;border:2px solid rgba(21,101,192,.4)}
+.map-radius{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:80px;height:80px;border-radius:50%;border:2px dashed rgba(6,199,85,.6);background:rgba(6,199,85,.08)}
+.map-accuracy-label{position:absolute;bottom:6px;right:8px;font-size:10px;color:#555;background:rgba(255,255,255,.85);border-radius:4px;padding:2px 6px}
+
+/* Buttons */
+.btn-area{padding:0 14px 14px;display:flex;gap:10px}
+.btn-checkin,.btn-checkout{flex:1;padding:16px;border:none;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:4px}
+.btn-checkin{background:#06C755;color:#fff}
+.btn-checkin:hover{background:#05b84d}
+.btn-checkin:active{transform:scale(.97)}
+.btn-checkout{background:#fff;color:#e53935;border:2px solid #e53935}
+.btn-checkout:hover{background:#fde8e8}
+.btn-checkout:active{transform:scale(.97)}
+.btn-icon{font-size:24px}
+.btn-sub{font-size:11px;opacity:.8;font-weight:400}
+
+/* คลาสสำหรับปุ่มที่ถูกล็อค (แทนการใช้ disabled ของระบบ) */
+.disabled-btn {
+  opacity: 0.4 !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+}
+
+/* Info strip */
+.info-strip{margin:0 14px 14px;background:#fff8e1;border-radius:10px;padding:10px 14px;font-size:12px;color:#f57f17;display:flex;align-items:center;gap:8px}
+
+/* History */
+.hist-header{padding:14px 16px 8px;font-size:14px;font-weight:700;color:#333;display:flex;justify-content:space-between;align-items:center}
+.hist-clear{font-size:12px;color:#06C755;cursor:pointer;font-weight:400}
+.hist-list{padding:0 14px}
+.hist-item{background:#fff;border-radius:12px;padding:12px 14px;margin-bottom:10px;box-shadow:0 1px 6px rgba(0,0,0,.06);display:flex;align-items:center;gap:12px}
+.hist-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.hist-icon-in{background:#e6faf0}
+.hist-icon-out{background:#fde8e8}
+.hist-detail{flex:1}
+.hist-type{font-size:13px;font-weight:700;color:#222}
+.hist-time{font-size:12px;color:#888;margin-top:2px}
+.hist-loc{font-size:11px;color:#aaa;margin-top:1px}
+.hist-badge{font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px}
+.hist-badge-ok{background:#e6faf0;color:#06C755}
+.hist-badge-no{background:#fde8e8;color:#e53935}
+.hist-empty{text-align:center;padding:40px 20px;color:#bbb;font-size:14px}
+
+/* Summary */
+.summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px 14px 8px}
+.sum-card{background:#fff;border-radius:12px;padding:14px;box-shadow:0 1px 6px rgba(0,0,0,.06);text-align:center}
+.sum-val{font-size:24px;font-weight:700;color:#06C755}
+.sum-label{font-size:12px;color:#888;margin-top:4px}
+
+/* Bottom nav */
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:390px;background:#fff;border-top:1px solid #eee;display:flex;z-index:100}
+.nav-item{flex:1;padding:10px 0 6px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;color:#999;font-size:10px;border:none;background:none}
+.nav-item.active{color:#06C755}
+.nav-icon{font-size:22px}
+
+/* Loading overlay */
+.loading{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999;align-items:center;justify-content:center;flex-direction:column;gap:12px;color:#fff;font-size:14px}
+.loading.show{display:flex}
+.spinner{width:40px;height:40px;border:3px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Toast */
+.toast{position:fixed;top:80px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;z-index:998;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="phone">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-avatar">🏢</div>
+    <div class="header-info">
+      <div class="header-name" id="companyName">ร้านไพศาลพานิช</div>
+      <div class="header-sub" id="empName">พนักงาน: กำลังโหลด...</div>
+    </div>
+  </div>
+  <div class="header" style="background:#05b84d;padding:0 16px;gap:0">
+    <div class="htab active" onclick="showPage('home',this)">หน้าหลัก</div>
+    <div class="htab" onclick="showPage('history',this)">ประวัติ</div>
+  </div>
+
+  <!-- PAGE: Home -->
+  <div id="page-home" class="page active">
+    <!-- Status -->
+    <div class="status-card">
+      <div class="status-top">
+        <div class="status-dot" id="statusDot" style="background:#ccc"></div>
+        <div>
+          <div class="status-label">สถานะปัจจุบัน</div>
+          <div class="status-val" id="statusText">ยังไม่ได้เช็คอิน</div>
+          <div class="status-time" id="statusTime">--</div>
+        </div>
+      </div>
+      <div class="loc-box">
+        <div class="loc-icon">📍</div>
+        <div class="loc-info">
+          <div class="loc-name" id="locName">กำลังตรวจสอบตำแหน่ง...</div>
+          <div class="loc-dist" id="locDist">ระยะห่างจากบริษัท: --</div>
+        </div>
+        <div class="loc-badge" id="locBadge" style="display:none"></div>
+      </div>
+    </div>
+
+    <!-- Map -->
+    <div class="map-area">
+      <div class="map-bg">
+        <div class="map-grid"></div>
+        <div class="map-radius"></div>
+        <div class="map-office"><div class="map-pin-office"></div><div class="map-label">บริษัท</div></div>
+        <div class="map-user" id="mapUser" style="display:none"></div>
+      </div>
+    </div>
+
+    <!-- Info -->
+    <div class="info-strip" id="infoStrip">
+      ⏳ กำลังขอสิทธิ์ GPS กรุณาอนุญาตการเข้าถึงตำแหน่ง
+    </div>
+
+    <!-- Buttons (เอา disabled ออกไปเลย เพื่อแก้ปุ่มค้าง) -->
+    <div class="btn-area">
+      <button class="btn-checkin disabled-btn" id="btnCheckin" onclick="doCheckin()">
+        <div class="btn-icon">🟢</div>
+        เช็คอิน
+        <div class="btn-sub">บันทึกเวลาเข้างาน</div>
+      </button>
+      <button class="btn-checkout disabled-btn" id="btnCheckout" onclick="doCheckout()">
+        <div class="btn-icon">🔴</div>
+        เช็คเอาต์
+        <div class="btn-sub">บันทึกเวลาออกงาน</div>
+      </button>
+    </div>
+
+    <!-- Today summary -->
+    <div class="summary-grid">
+      <div class="sum-card">
+        <div class="sum-val" id="todayIn">--</div>
+        <div class="sum-label">เวลาเข้างานวันนี้</div>
+      </div>
+      <div class="sum-card">
+        <div class="sum-val" id="todayOut">--</div>
+        <div class="sum-label">เวลาออกงานล่าสุด</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE: History -->
+  <div id="page-history" class="page">
+    <div class="hist-header">
+      ประวัติการลงเวลา
+      <span class="hist-clear" onclick="clearHistory()">ล้างประวัติ</span>
+    </div>
+    <div class="hist-list" id="histList">
+      <div class="hist-empty">ยังไม่มีประวัติการลงเวลา</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Bottom Nav -->
+<div class="bottom-nav">
+  <button class="nav-item active" id="nav-home" onclick="showPage('home',null,'nav-home')">
+    <div class="nav-icon">🏠</div>หน้าหลัก
+  </button>
+  <button class="nav-item" id="nav-history" onclick="showPage('history',null,'nav-history')">
+    <div class="nav-icon">📋</div>ประวัติ
+  </button>
+</div>
+
+<div class="loading" id="loading"><div class="spinner"></div><span id="loadingText">กำลังดึงตำแหน่ง...</span></div>
+<div class="toast" id="toast"></div>
+
 <script>
 const LIFF_ID = "2010063740-honG4FMh";
 const GAS_URL = "https://script.google.com/macros/s/AKfycbz38705Xib9gsh6I9Ni6pIbDxsQtdbwFYnjEleJvAxyZoPZj3C5E8MPjas0purp4DsTwg/exec";
 
-// 1. ตรวจสอบประวัติล่าสุด
-var savedRecords = JSON.parse(localStorage.getItem('records') || '[]');
+// 1. ดึงข้อมูลจากเครื่อง
+var savedRecords = [];
+try {
+  savedRecords = JSON.parse(localStorage.getItem('records') || '[]');
+} catch(e) {
+  savedRecords = [];
+}
 var currentCheckInStatus = savedRecords.length > 0 ? (savedRecords[0].type === 'in') : false;
 
-// 2. ข้อมูล State หลัก (ล็อกค่าร้านไพศาลพานิช)
+// 2. State ตั้งค่าร้าน
 var state = {
   lat: null, lng: null, accuracy: null,
   officeLat: 15.8662189,
@@ -20,8 +250,6 @@ var state = {
   userId: null
 };
 
-document.getElementById('companyName').textContent = state.company;
-
 // คำนวณระยะทาง
 function calcDist(lat1,lng1,lat2,lng2){
   var R=6371000,dLat=(lat2-lat1)*Math.PI/180,dLng=(lng2-lng1)*Math.PI/180;
@@ -29,7 +257,7 @@ function calcDist(lat1,lng1,lat2,lng2){
   return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
 
-// โหลด LINE LIFF
+// โหลด LINE
 async function initializeLiff() {
   try {
     showLoading('กำลังดึงข้อมูล LINE...');
@@ -42,7 +270,7 @@ async function initializeLiff() {
     document.getElementById('empName').textContent = 'พนักงาน: ' + state.emp;
     
     hideLoading();
-    startGPS(); // เมื่อได้ข้อมูล LINE แล้วค่อยเปิด GPS
+    startGPS(); 
   } catch (err) {
     hideLoading();
     showToast('❌ ไม่สามารถเชื่อมต่อ LINE ได้');
@@ -50,7 +278,7 @@ async function initializeLiff() {
   }
 }
 
-// เปิด GPS
+// GPS
 function startGPS(){
   if(!navigator.geolocation){
     document.getElementById('locName').textContent='ไม่รองรับ GPS';
@@ -62,7 +290,6 @@ function startGPS(){
 function onPos(pos){
   state.lat = pos.coords.latitude;
   state.lng = pos.coords.longitude;
-  state.accuracy = Math.round(pos.coords.accuracy);
   
   var dist = Math.round(calcDist(state.lat,state.lng,state.officeLat,state.officeLng));
   state.inRange = (dist <= state.radius);
@@ -85,7 +312,6 @@ function onPos(pos){
     document.getElementById('infoStrip').style.color='#c62828';
   }
 
-  // อัปเดตจุดแผนที่จำลอง
   var userEl=document.getElementById('mapUser');
   var ox=Math.min(60,Math.max(-60,(state.lng-state.officeLng)*8000));
   var oy=Math.min(60,Math.max(-60,(state.officeLat-state.lat)*8000));
@@ -93,7 +319,7 @@ function onPos(pos){
   userEl.style.top='calc(50% + '+oy+'px)';
   userEl.style.display='block';
 
-  updateButtons(); // อัปเดตปุ่มเมื่อตำแหน่งเปลี่ยน
+  updateButtons();
 }
 
 function onErr(err){
@@ -101,30 +327,33 @@ function onErr(err){
   document.getElementById('infoStrip').innerHTML='⚠️ กรุณาเปิดการระบุตำแหน่ง (GPS)';
 }
 
-// ควบคุมปุ่มกด
+// คุมปุ่มผ่าน CSS (ไม่พึ่งพาระบบล็อคเบราว์เซอร์)
 function updateButtons() {
   var ci = document.getElementById('btnCheckin');
   var co = document.getElementById('btnCheckout');
   if (!ci || !co) return;
 
-  // เงื่อนไข 1: เช็คอินได้ก็ต่อเมื่อ "ในพื้นที่" และ "ยังไม่เช็คอิน"
-  if (state.inRange === true && state.isCheckedIn === false) {
-    ci.disabled = false; 
+  // จัดการแสงปุ่มเช็คอิน
+  if (state.inRange && !state.isCheckedIn) {
+    ci.classList.remove('disabled-btn');
   } else {
-    ci.disabled = true;  
+    ci.classList.add('disabled-btn');
   }
 
-  // เงื่อนไข 2: เช็คเอาต์ได้เสมอ ถ้าสถานะคือ "กำลังเช็คอินอยู่"
-  if (state.isCheckedIn === true) {
-    co.disabled = false; 
+  // จัดการแสงปุ่มเช็คเอาต์
+  if (state.isCheckedIn) {
+    co.classList.remove('disabled-btn');
   } else {
-    co.disabled = true;  
+    co.classList.add('disabled-btn');
   }
 }
 
-// ระบบเช็คอิน
+// เช็คอิน
 function doCheckin() {
-  if (!state.inRange) { showToast('❌ อยู่นอกพื้นที่'); return; }
+  // ดักตรวจสอบความถูกต้องก่อน
+  if (state.isCheckedIn) { showToast('⚠️ คุณได้เช็คอินไปแล้ว'); return; }
+  if (!state.inRange) { showToast('❌ ไม่สามารถเช็คอินได้ (อยู่นอกพื้นที่)'); return; }
+
   showLoading('กำลังบันทึกเวลาเข้า...');
   var now = new Date();
   var payload = { name: state.emp, userId: state.userId, type: "เช็คอิน", lat: state.lat, lng: state.lng, inRange: true };
@@ -143,8 +372,11 @@ function doCheckin() {
   }).catch(e => { hideLoading(); showToast('❌ ขัดข้อง รบกวนกดใหม่'); });
 }
 
-// ระบบเช็คเอาต์
+// เช็คเอาต์
 function doCheckout() {
+  // ดักตรวจสอบความถูกต้องก่อน
+  if (!state.isCheckedIn) { showToast('⚠️ คุณต้องเช็คอินก่อน ถึงจะกดเช็คเอาต์ได้'); return; }
+
   showLoading('กำลังบันทึกเวลาออก...');
   var now = new Date();
   var payload = { name: state.emp, userId: state.userId, type: "เช็คเอาต์", lat: state.lat, lng: state.lng, inRange: state.inRange };
@@ -228,13 +460,11 @@ function showLoading(txt){document.getElementById('loading').classList.add('show
 function hideLoading(){document.getElementById('loading').classList.remove('show');}
 function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}
 
-// การทำงานเมื่อโหลดหน้าเว็บ
-if (state.records.length > 0) {
-  updateStatusUI(new Date(state.records[0].time), state.records[0].type);
-}
+// เริ่มทำงาน
+if (state.records.length > 0) { updateStatusUI(new Date(state.records[0].time), state.records[0].type); }
 renderHistory();
 loadTodaySummary();
-
-// เริ่มต้นระบบเชื่อมต่อ LINE
 initializeLiff();
 </script>
+</body>
+</html>
