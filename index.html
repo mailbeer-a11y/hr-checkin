@@ -370,40 +370,90 @@ function updateButtons(){
 }
 
 // Check-in
-function doCheckin(){
-  if(!state.inRange){showToast('❌ ไม่สามารถเช็คอินได้ คุณอยู่นอกพื้นที่');return;}
-  showLoading('กำลังบันทึกเวลาเข้างาน...');
-  setTimeout(function(){
-    var now=new Date();
-    var rec={type:'in',time:now.toISOString(),lat:state.lat,lng:state.lng,inRange:true};
-    state.records.unshift(rec);
-    state.isCheckedIn=true;
-    save();
+function doCheckin() {
+  if (!state.inRange) { showToast('❌ ไม่สามารถเช็คอินได้ คุณอยู่นอกพื้นที่'); return; }
+  showLoading('กำลังส่งข้อมูลไปยัง Google Sheet...');
+
+  var now = new Date();
+  var payload = {
+    name: state.emp,
+    userId: "WebUser", // หากเชื่อม LIFF สำเร็จ สามารถนำ userId มาใส่ตรงนี้ได้
+    type: "เช็คอิน",
+    lat: state.lat,
+    lng: state.lng,
+    inRange: true
+  };
+
+  fetch(GAS_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(payload)
+  })
+  .then(response => response.json())
+  .then(data => {
     hideLoading();
-    updateStatusUI(now,'in');
-    loadTodaySummary();
-    renderHistory();
-    updateButtons();
-    showToast('✅ เช็คอินสำเร็จ เวลา '+fmtTime(now));
-  },1200);
+    if (data.status === "success" || data.status === "ok") {
+      var rec = { type: 'in', time: now.toISOString(), lat: state.lat, lng: state.lng, inRange: true };
+      state.records.unshift(rec);
+      state.isCheckedIn = true;
+      save();
+      updateStatusUI(now, 'in');
+      loadTodaySummary();
+      renderHistory();
+      updateButtons();
+      showToast('✅ เช็คอินสำเร็จ เวลา ' + fmtTime(now));
+    } else {
+      showToast('❌ บันทึกไม่สำเร็จ: ' + data.message);
+    }
+  })
+  .catch(error => {
+    hideLoading();
+    showToast('❌ เกิดข้อผิดพลาดในการเชื่อมต่อ');
+    console.error('Error:', error);
+  });
 }
 
 // Check-out
-function doCheckout(){
-  showLoading('กำลังบันทึกเวลาออกงาน...');
-  setTimeout(function(){
-    var now=new Date();
-    var rec={type:'out',time:now.toISOString(),lat:state.lat,lng:state.lng,inRange:state.inRange};
-    state.records.unshift(rec);
-    state.isCheckedIn=false;
-    save();
+function doCheckout() {
+  showLoading('กำลังส่งข้อมูลไปยัง Google Sheet...');
+
+  var now = new Date();
+  var payload = {
+    name: state.emp,
+    userId: "WebUser", 
+    type: "เช็คเอาต์",
+    lat: state.lat,
+    lng: state.lng,
+    inRange: state.inRange
+  };
+
+  fetch(GAS_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(payload)
+  })
+  .then(response => response.json())
+  .then(data => {
     hideLoading();
-    updateStatusUI(now,'out');
-    loadTodaySummary();
-    renderHistory();
-    updateButtons();
-    showToast('✅ เช็คเอาต์สำเร็จ เวลา '+fmtTime(now));
-  },1200);
+    if (data.status === "success" || data.status === "ok") {
+      var rec = { type: 'out', time: now.toISOString(), lat: state.lat, lng: state.lng, inRange: state.inRange };
+      state.records.unshift(rec);
+      state.isCheckedIn = false;
+      save();
+      updateStatusUI(now, 'out');
+      loadTodaySummary();
+      renderHistory();
+      updateButtons();
+      showToast('✅ เช็คเอาต์สำเร็จ เวลา ' + fmtTime(now));
+    } else {
+      showToast('❌ บันทึกไม่สำเร็จ: ' + data.message);
+    }
+  })
+  .catch(error => {
+    hideLoading();
+    showToast('❌ เกิดข้อผิดพลาดในการเชื่อมต่อ');
+    console.error('Error:', error);
+  });
 }
 
 function updateStatusUI(dt,type){
