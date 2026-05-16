@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:#f0f0f0;min-height:100vh;display:flex;flex-direction:column;align-items:center}
+.phone{width:100%;max-width:390px;min-height:100vh;background:#fff;display:flex;flex-direction:column;position:relative;overflow:hidden}
+
+/* Header */
+.header{background:#06C755;color:#fff;padding:14px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.header-avatar{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:18px}
+.header-info{flex:1}
+.header-name{font-size:15px;font-weight:600}
+.header-sub{font-size:11px;opacity:.8}
+.header-tabs{display:flex;gap:0}
+.htab{padding:6px 14px;font-size:12px;color:rgba(255,255,255,.7);cursor:pointer;border-bottom:2px solid transparent}
+.htab.active{color:#fff;border-bottom-color:#fff;font-weight:600}
+
+/* Pages */
+.page{display:none;flex:1;overflow-y:auto;padding-bottom:70px}
+.page.active{display:block}
+
+/* Status Card */
+.status-card{margin:14px;background:#fff;border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,.08);overflow:hidden}
+.status-top{padding:16px;display:flex;align-items:center;gap:12px}
+.status-dot{width:14px;height:14px;border-radius:50%;flex-shrink:0}
+.dot-in{background:#06C755;box-shadow:0 0 0 4px rgba(6,199,85,.2)}
+.dot-out{background:#ccc}
+.status-label{font-size:13px;color:#888}
+.status-val{font-size:16px;font-weight:700;color:#222}
+.status-time{font-size:12px;color:#aaa;margin-top:2px}
+
+/* Location box */
+.loc-box{background:#f8f8f8;border-top:1px solid #eee;padding:12px 16px;display:flex;align-items:center;gap:10px}
+.loc-icon{font-size:20px}
+.loc-info{flex:1}
+.loc-name{font-size:13px;font-weight:600;color:#333}
+.loc-dist{font-size:12px;color:#888}
+.loc-badge{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-ok{background:#e6faf0;color:#06C755}
+.badge-no{background:#fde8e8;color:#e53935}
+
+/* Map mock */
+.map-area{margin:0 14px 14px;border-radius:12px;overflow:hidden;height:160px;background:#e8f5e9;position:relative;border:1px solid #ddd}
+.map-bg{width:100%;height:100%;background:linear-gradient(135deg,#c8e6c9 0%,#a5d6a7 50%,#c8e6c9 100%);position:relative}
+.map-grid{position:absolute;inset:0;background-image:repeating-linear-gradient(0deg,rgba(0,0,0,.04) 0,rgba(0,0,0,.04) 1px,transparent 1px,transparent 32px),repeating-linear-gradient(90deg,rgba(0,0,0,.04) 0,rgba(0,0,0,.04) 1px,transparent 1px,transparent 32px)}
+.map-office{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center}
+.map-pin-office{width:32px;height:32px;background:#06C755;border-radius:50% 50% 50% 0;transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.map-pin-office::after{content:'🏢';transform:rotate(45deg);font-size:14px;display:block}
+.map-label{margin-top:6px;background:#fff;border-radius:6px;padding:2px 8px;font-size:10px;font-weight:600;color:#333;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+.map-user{position:absolute;width:20px;height:20px;background:#1565C0;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.4);top:35%;left:35%}
+.map-user::before{content:'';position:absolute;inset:-6px;border-radius:50%;border:2px solid rgba(21,101,192,.4)}
+.map-radius{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:80px;height:80px;border-radius:50%;border:2px dashed rgba(6,199,85,.6);background:rgba(6,199,85,.08)}
+.map-accuracy-label{position:absolute;bottom:6px;right:8px;font-size:10px;color:#555;background:rgba(255,255,255,.85);border-radius:4px;padding:2px 6px}
+
+/* Buttons */
+.btn-area{padding:0 14px 14px;display:flex;gap:10px}
+.btn-checkin,.btn-checkout{flex:1;padding:16px;border:none;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:4px}
+.btn-checkin{background:#06C755;color:#fff}
+.btn-checkin:hover{background:#05b84d}
+.btn-checkin:active{transform:scale(.97)}
+.btn-checkout{background:#fff;color:#e53935;border:2px solid #e53935}
+.btn-checkout:hover{background:#fde8e8}
+.btn-checkout:active{transform:scale(.97)}
+.btn-icon{font-size:24px}
+.btn-sub{font-size:11px;opacity:.8;font-weight:400}
+.btn-checkin:disabled,.btn-checkout:disabled{opacity:.4;cursor:not-allowed;transform:none}
+
+/* Info strip */
+.info-strip{margin:0 14px 14px;background:#fff8e1;border-radius:10px;padding:10px 14px;font-size:12px;color:#f57f17;display:flex;align-items:center;gap:8px}
+
+/* History */
+.hist-header{padding:14px 16px 8px;font-size:14px;font-weight:700;color:#333;display:flex;justify-content:space-between;align-items:center}
+.hist-clear{font-size:12px;color:#06C755;cursor:pointer;font-weight:400}
+.hist-list{padding:0 14px}
+.hist-item{background:#fff;border-radius:12px;padding:12px 14px;margin-bottom:10px;box-shadow:0 1px 6px rgba(0,0,0,.06);display:flex;align-items:center;gap:12px}
+.hist-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.hist-icon-in{background:#e6faf0}
+.hist-icon-out{background:#fde8e8}
+.hist-detail{flex:1}
+.hist-type{font-size:13px;font-weight:700;color:#222}
+.hist-time{font-size:12px;color:#888;margin-top:2px}
+.hist-loc{font-size:11px;color:#aaa;margin-top:1px}
+.hist-badge{font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px}
+.hist-badge-ok{background:#e6faf0;color:#06C755}
+.hist-badge-no{background:#fde8e8;color:#e53935}
+.hist-empty{text-align:center;padding:40px 20px;color:#bbb;font-size:14px}
+
+/* Summary */
+.summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px 14px 8px}
+.sum-card{background:#fff;border-radius:12px;padding:14px;box-shadow:0 1px 6px rgba(0,0,0,.06);text-align:center}
+.sum-val{font-size:24px;font-weight:700;color:#06C755}
+.sum-label{font-size:12px;color:#888;margin-top:4px}
+
+/* Bottom nav */
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:390px;background:#fff;border-top:1px solid #eee;display:flex;z-index:100}
+.nav-item{flex:1;padding:10px 0 6px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;color:#999;font-size:10px;border:none;background:none}
+.nav-item.active{color:#06C755}
+.nav-icon{font-size:22px}
+
+/* Loading overlay */
+.loading{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999;align-items:center;justify-content:center;flex-direction:column;gap:12px;color:#fff;font-size:14px}
+.loading.show{display:flex}
+.spinner{width:40px;height:40px;border:3px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Toast */
+.toast{position:fixed;top:80px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;z-index:998;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1}
+
+/* Settings */
+.setting-section{padding:14px 16px 8px;font-size:12px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.05em}
+.setting-item{margin:0 14px 10px;background:#fff;border-radius:12px;padding:14px;box-shadow:0 1px 6px rgba(0,0,0,.06)}
+.setting-label{font-size:13px;font-weight:600;color:#333;margin-bottom:4px}
+.setting-sub{font-size:12px;color:#888;margin-bottom:10px}
+.setting-input{width:100%;border:1.5px solid #e0e0e0;border-radius:8px;padding:9px 12px;font-size:13px;outline:none;transition:border .2s}
+.setting-input:focus{border-color:#06C755}
+.save-btn{width:100%;padding:12px;background:#06C755;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;margin-top:6px}
+.save-btn:hover{background:#05b84d}
+</style>
+</head>
+<body>
+<div class="phone">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-avatar">🏢</div>
+    <div class="header-info">
+      <div class="header-name" id="companyName">บริษัท ตัวอย่าง จำกัด</div>
+      <div class="header-sub" id="empName">พนักงาน: สมชาย ใจดี</div>
+    </div>
+  </div>
+  <div class="header" style="background:#05b84d;padding:0 16px;gap:0">
+    <div class="htab active" onclick="showPage('home',this)">หน้าหลัก</div>
+    <div class="htab" onclick="showPage('history',this)">ประวัติ</div>
+    <div class="htab" onclick="showPage('settings',this)">ตั้งค่า</div>
+  </div>
+
+  <!-- PAGE: Home -->
+  <div id="page-home" class="page active">
+    <!-- Status -->
+    <div class="status-card">
+      <div class="status-top">
+        <div class="status-dot" id="statusDot" style="background:#ccc"></div>
+        <div>
+          <div class="status-label">สถานะปัจจุบัน</div>
+          <div class="status-val" id="statusText">ยังไม่ได้เช็คอิน</div>
+          <div class="status-time" id="statusTime">--</div>
+        </div>
+      </div>
+      <div class="loc-box">
+        <div class="loc-icon">📍</div>
+        <div class="loc-info">
+          <div class="loc-name" id="locName">กำลังตรวจสอบตำแหน่ง...</div>
+          <div class="loc-dist" id="locDist">ระยะห่างจากบริษัท: --</div>
+        </div>
+        <div class="loc-badge" id="locBadge" style="display:none"></div>
+      </div>
+    </div>
+
+    <!-- Map -->
+    <div class="map-area">
+      <div class="map-bg">
+        <div class="map-grid"></div>
+        <div class="map-radius"></div>
+        <div class="map-office"><div class="map-pin-office"></div><div class="map-label">บริษัท</div></div>
+        <div class="map-user" id="mapUser"></div>
+        <div class="map-accuracy-label" id="accuracyLabel">ความแม่นยำ: --</div>
+      </div>
+    </div>
+
+    <!-- Info -->
+    <div class="info-strip" id="infoStrip">
+      ⏳ กำลังขอสิทธิ์ GPS กรุณาอนุญาตการเข้าถึงตำแหน่ง
+    </div>
+
+    <!-- Buttons -->
+    <div class="btn-area">
+      <button class="btn-checkin" id="btnCheckin" onclick="doCheckin()" disabled>
+        <div class="btn-icon">🟢</div>
+        เช็คอิน
+        <div class="btn-sub">บันทึกเวลาเข้างาน</div>
+      </button>
+      <button class="btn-checkout" id="btnCheckout" onclick="doCheckout()" disabled>
+        <div class="btn-icon">🔴</div>
+        เช็คเอาต์
+        <div class="btn-sub">บันทึกเวลาออกงาน</div>
+      </button>
+    </div>
+
+    <!-- Today summary -->
+    <div class="summary-grid">
+      <div class="sum-card">
+        <div class="sum-val" id="todayIn">--</div>
+        <div class="sum-label">เวลาเข้างานวันนี้</div>
+      </div>
+      <div class="sum-card">
+        <div class="sum-val" id="todayOut">--</div>
+        <div class="sum-label">เวลาออกงานล่าสุด</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE: History -->
+  <div id="page-history" class="page">
+    <div class="hist-header">
+      ประวัติการลงเวลา
+      <span class="hist-clear" onclick="clearHistory()">ล้างประวัติ</span>
+    </div>
+    <div class="hist-list" id="histList">
+      <div class="hist-empty">ยังไม่มีประวัติการลงเวลา</div>
+    </div>
+  </div>
+
+  <!-- PAGE: Settings -->
+  <div id="page-settings" class="page">
+    <div class="setting-section">ข้อมูลบริษัท</div>
+    <div class="setting-item">
+      <div class="setting-label">ชื่อบริษัท</div>
+      <input class="setting-input" id="inputCompany" value="บริษัท ตัวอย่าง จำกัด" placeholder="ชื่อบริษัท">
+    </div>
+    <div class="setting-item">
+      <div class="setting-label">ชื่อพนักงาน</div>
+      <input class="setting-input" id="inputEmp" value="สมชาย ใจดี" placeholder="ชื่อ-นามสกุล">
+    </div>
+
+    <div class="setting-section">ตำแหน่งบริษัท (Geofence)</div>
+    <div class="setting-item">
+      <div class="setting-label">Latitude บริษัท</div>
+      <div class="setting-sub">พิกัดละติจูดของที่ตั้งบริษัท</div>
+      <input class="setting-input" id="inputLat" value="13.7563" placeholder="เช่น 13.7563">
+    </div>
+    <div class="setting-item">
+      <div class="setting-label">Longitude บริษัท</div>
+      <div class="setting-sub">พิกัดลองจิจูดของที่ตั้งบริษัท</div>
+      <input class="setting-input" id="inputLng" value="100.5018" placeholder="เช่น 100.5018">
+    </div>
+    <div class="setting-item">
+      <div class="setting-label">รัศมีที่อนุญาต (เมตร)</div>
+      <div class="setting-sub">ระยะห่างสูงสุดที่พนักงานสามารถเช็คอินได้</div>
+      <input class="setting-input" id="inputRadius" value="200" placeholder="เช่น 200" type="number">
+      <button class="save-btn" onclick="saveSettings()" style="margin-top:12px">💾 บันทึกการตั้งค่า</button>
+    </div>
+
+    <div class="setting-section">ใช้ตำแหน่งปัจจุบันเป็นบริษัท</div>
+    <div class="setting-item">
+      <div class="setting-sub">กดปุ่มด้านล่างเพื่อตั้งค่าตำแหน่งปัจจุบันของคุณเป็นที่ตั้งบริษัท (สะดวกสำหรับการทดสอบ)</div>
+      <button class="save-btn" onclick="useCurrentAsOffice()">📍 ใช้ตำแหน่งปัจจุบันเป็นบริษัท</button>
+    </div>
+  </div>
+
+</div><!-- /phone -->
+
+<!-- Bottom Nav -->
+<div class="bottom-nav">
+  <button class="nav-item active" id="nav-home" onclick="showPage('home',null,'nav-home')">
+    <div class="nav-icon">🏠</div>หน้าหลัก
+  </button>
+  <button class="nav-item" id="nav-history" onclick="showPage('history',null,'nav-history')">
+    <div class="nav-icon">📋</div>ประวัติ
+  </button>
+  <button class="nav-item" id="nav-settings" onclick="showPage('settings',null,'nav-settings')">
+    <div class="nav-icon">⚙️</div>ตั้งค่า
+  </button>
+</div>
+
+<div class="loading" id="loading"><div class="spinner"></div><span id="loadingText">กำลังดึงตำแหน่ง...</span></div>
+<div class="toast" id="toast"></div>
+
+<script>
+// State
+
+const LIFF_ID = "2010063740-honG4FMh";
+const GAS_URL = "https://script.google.com/u/0/home/projects/1yY-g5PeLMPsWVpjzcTjDB778MiClw1r-l4Lx0bGjoOvKpDNj4LQzkzjo/edit";
+
+var state = {
+  lat: null, lng: null, accuracy: null,
+  officeLat: parseFloat(localStorage.getItem('officeLat')||'13.7563'),
+  officeLng: parseFloat(localStorage.getItem('officeLng')||'100.5018'),
+  radius: parseFloat(localStorage.getItem('radius')||'200'),
+  inRange: false, isCheckedIn: false,
+  records: JSON.parse(localStorage.getItem('records')||'[]'),
+  company: localStorage.getItem('company')||'บริษัท ตัวอย่าง จำกัด',
+  emp: localStorage.getItem('emp')||'สมชาย ใจดี'
+};
+
+// Init UI from saved settings
+document.getElementById('companyName').textContent = state.company;
+document.getElementById('empName').textContent = 'พนักงาน: ' + state.emp;
+document.getElementById('inputCompany').value = state.company;
+document.getElementById('inputEmp').value = state.emp;
+document.getElementById('inputLat').value = state.officeLat;
+document.getElementById('inputLng').value = state.officeLng;
+document.getElementById('inputRadius').value = state.radius;
+
+renderHistory();
+loadTodaySummary();
+
+// Calculate distance (Haversine)
+function calcDist(lat1,lng1,lat2,lng2){
+  var R=6371000,dLat=(lat2-lat1)*Math.PI/180,dLng=(lng2-lng1)*Math.PI/180;
+  var a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)*Math.sin(dLng/2);
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+// GPS
+function startGPS(){
+  if(!navigator.geolocation){
+    document.getElementById('locName').textContent='ไม่รองรับ GPS';
+    document.getElementById('infoStrip').textContent='⚠️ เบราว์เซอร์นี้ไม่รองรับ GPS';
+    return;
+  }
+  navigator.geolocation.watchPosition(onPos, onErr, {enableHighAccuracy:true,timeout:15000,maximumAge:5000});
+}
+
+function onPos(pos){
+  state.lat=pos.coords.latitude;
+  state.lng=pos.coords.longitude;
+  state.accuracy=Math.round(pos.coords.accuracy);
+  var dist=Math.round(calcDist(state.lat,state.lng,state.officeLat,state.officeLng));
+  state.inRange=dist<=state.radius;
+
+  document.getElementById('locName').textContent='ตำแหน่ง: '+state.lat.toFixed(5)+', '+state.lng.toFixed(5);
+  document.getElementById('locDist').textContent='ระยะห่างจากบริษัท: '+dist+' เมตร (รัศมีที่อนุญาต: '+state.radius+' ม.)';
+  document.getElementById('accuracyLabel').textContent='ความแม่นยำ: ±'+state.accuracy+' ม.';
+
+  var badge=document.getElementById('locBadge');
+  badge.style.display='block';
+  if(state.inRange){
+    badge.className='loc-badge badge-ok';badge.textContent='✅ อยู่ในพื้นที่';
+    document.getElementById('infoStrip').innerHTML='✅ คุณอยู่ในรัศมีที่กำหนด สามารถลงเวลาได้';
+    document.getElementById('infoStrip').style.background='#e6faf0';
+    document.getElementById('infoStrip').style.color='#085041';
+  } else {
+    badge.className='loc-badge badge-no';badge.textContent='❌ นอกพื้นที่';
+    document.getElementById('infoStrip').innerHTML='❌ คุณอยู่ห่างจากบริษัท '+dist+' เมตร เกินรัศมีที่กำหนด ('+state.radius+' ม.)';
+    document.getElementById('infoStrip').style.background='#fde8e8';
+    document.getElementById('infoStrip').style.color='#c62828';
+  }
+
+  // Update map user marker position (simulate offset)
+  var userEl=document.getElementById('mapUser');
+  var ox=Math.min(60,Math.max(-60,(state.lng-state.officeLng)*8000));
+  var oy=Math.min(60,Math.max(-60,(state.officeLat-state.lat)*8000));
+  userEl.style.left='calc(50% + '+ox+'px)';
+  userEl.style.top='calc(50% + '+oy+'px)';
+  userEl.style.display='block';
+
+  // Enable buttons based on status
+  updateButtons();
+}
+
+function onErr(err){
+  document.getElementById('locName').textContent='ไม่สามารถดึงตำแหน่งได้';
+  document.getElementById('infoStrip').innerHTML='⚠️ '+err.message+' — ลองกดอนุญาต GPS ใหม่';
+  document.getElementById('infoStrip').style.background='#fff8e1';
+  document.getElementById('infoStrip').style.color='#f57f17';
+}
+
+function updateButtons(){
+  var ci=document.getElementById('btnCheckin'), co=document.getElementById('btnCheckout');
+  if(state.inRange){
+    ci.disabled=state.isCheckedIn;
+    co.disabled=!state.isCheckedIn;
+  } else {
+    ci.disabled=true; co.disabled=true;
+  }
+}
+
+// Check-in
+function doCheckin(){
+  if(!state.inRange){showToast('❌ ไม่สามารถเช็คอินได้ คุณอยู่นอกพื้นที่');return;}
+  showLoading('กำลังบันทึกเวลาเข้างาน...');
+  setTimeout(function(){
+    var now=new Date();
+    var rec={type:'in',time:now.toISOString(),lat:state.lat,lng:state.lng,inRange:true};
+    state.records.unshift(rec);
+    state.isCheckedIn=true;
+    save();
+    hideLoading();
+    updateStatusUI(now,'in');
+    loadTodaySummary();
+    renderHistory();
+    updateButtons();
+    showToast('✅ เช็คอินสำเร็จ เวลา '+fmtTime(now));
+  },1200);
+}
+
+// Check-out
+function doCheckout(){
+  showLoading('กำลังบันทึกเวลาออกงาน...');
+  setTimeout(function(){
+    var now=new Date();
+    var rec={type:'out',time:now.toISOString(),lat:state.lat,lng:state.lng,inRange:state.inRange};
+    state.records.unshift(rec);
+    state.isCheckedIn=false;
+    save();
+    hideLoading();
+    updateStatusUI(now,'out');
+    loadTodaySummary();
+    renderHistory();
+    updateButtons();
+    showToast('✅ เช็คเอาต์สำเร็จ เวลา '+fmtTime(now));
+  },1200);
+}
+
+function updateStatusUI(dt,type){
+  var dot=document.getElementById('statusDot');
+  var txt=document.getElementById('statusText');
+  var time=document.getElementById('statusTime');
+  if(type==='in'){
+    dot.className='status-dot dot-in';
+    txt.textContent='กำลังทำงาน';
+    time.textContent='เช็คอินเมื่อ: '+fmtTime(dt)+' น. ('+fmtDate(dt)+')';
+  } else {
+    dot.className='status-dot dot-out';
+    txt.textContent='ออกงานแล้ว';
+    time.textContent='เช็คเอาต์เมื่อ: '+fmtTime(dt)+' น. ('+fmtDate(dt)+')';
+  }
+}
+
+function loadTodaySummary(){
+  var today=new Date().toDateString();
+  var ins=state.records.filter(function(r){return r.type==='in'&&new Date(r.time).toDateString()===today});
+  var outs=state.records.filter(function(r){return r.type==='out'&&new Date(r.time).toDateString()===today});
+  document.getElementById('todayIn').textContent=ins.length?fmtTime(new Date(ins[ins.length-1].time)):'--';
+  document.getElementById('todayOut').textContent=outs.length?fmtTime(new Date(outs[0].time)):'--';
+}
+
+function renderHistory(){
+  var el=document.getElementById('histList');
+  if(!state.records.length){el.innerHTML='<div class="hist-empty">ยังไม่มีประวัติการลงเวลา</div>';return;}
+  el.innerHTML=state.records.map(function(r){
+    var dt=new Date(r.time);
+    var icon=r.type==='in'?'🟢':'🔴';
+    var label=r.type==='in'?'เช็คอิน':'เช็คเอาต์';
+    var iconClass=r.type==='in'?'hist-icon-in':'hist-icon-out';
+    var badge=r.inRange?'<span class="hist-badge hist-badge-ok">อยู่ในพื้นที่</span>':'<span class="hist-badge hist-badge-no">นอกพื้นที่</span>';
+    var coords=r.lat?r.lat.toFixed(4)+', '+r.lng.toFixed(4):'ไม่ทราบตำแหน่ง';
+    return '<div class="hist-item"><div class="hist-icon '+iconClass+'">'+icon+'</div><div class="hist-detail"><div class="hist-type">'+label+'</div><div class="hist-time">'+fmtTime(dt)+' น. — '+fmtDate(dt)+'</div><div class="hist-loc">📍 '+coords+'</div></div>'+badge+'</div>';
+  }).join('');
+}
+
+function clearHistory(){
+  if(confirm('ต้องการล้างประวัติทั้งหมดใช่ไหม?')){
+    state.records=[];state.isCheckedIn=false;save();renderHistory();loadTodaySummary();
+    document.getElementById('statusDot').style.background='#ccc';
+    document.getElementById('statusText').textContent='ยังไม่ได้เช็คอิน';
+    document.getElementById('statusTime').textContent='--';
+    updateButtons();showToast('🗑️ ล้างประวัติแล้ว');
+  }
+}
+
+function saveSettings(){
+  state.company=document.getElementById('inputCompany').value;
+  state.emp=document.getElementById('inputEmp').value;
+  state.officeLat=parseFloat(document.getElementById('inputLat').value)||13.7563;
+  state.officeLng=parseFloat(document.getElementById('inputLng').value)||100.5018;
+  state.radius=parseFloat(document.getElementById('inputRadius').value)||200;
+  localStorage.setItem('company',state.company);
+  localStorage.setItem('emp',state.emp);
+  localStorage.setItem('officeLat',state.officeLat);
+  localStorage.setItem('officeLng',state.officeLng);
+  localStorage.setItem('radius',state.radius);
+  document.getElementById('companyName').textContent=state.company;
+  document.getElementById('empName').textContent='พนักงาน: '+state.emp;
+  showToast('💾 บันทึกการตั้งค่าแล้ว');
+}
+
+function useCurrentAsOffice(){
+  if(!state.lat){showToast('⚠️ ยังไม่ได้รับตำแหน่ง GPS');return;}
+  document.getElementById('inputLat').value=state.lat.toFixed(6);
+  document.getElementById('inputLng').value=state.lng.toFixed(6);
+  showToast('📍 ตั้งค่าตำแหน่งปัจจุบันเป็นบริษัทแล้ว กด บันทึก');
+}
+
+function save(){localStorage.setItem('records',JSON.stringify(state.records));}
+
+// Page switching
+var tabs=['home','history','settings'];
+function showPage(page,tabEl,navId){
+  tabs.forEach(function(t){
+    document.getElementById('page-'+t).classList.remove('active');
+    var nav=document.getElementById('nav-'+t);
+    if(nav)nav.classList.remove('active');
+  });
+  document.querySelectorAll('.htab').forEach(function(t){t.classList.remove('active');});
+  document.getElementById('page-'+page).classList.add('active');
+  if(tabEl)tabEl.classList.add('active');
+  if(navId)document.getElementById(navId).classList.add('active');
+}
+
+// Helpers
+function fmtTime(d){return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0')+':'+d.getSeconds().toString().padStart(2,'0');}
+function fmtDate(d){var m=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];return d.getDate()+' '+m[d.getMonth()]+' '+(d.getFullYear()+543);}
+function showLoading(txt){document.getElementById('loading').classList.add('show');document.getElementById('loadingText').textContent=txt||'กำลังโหลด...';}
+function hideLoading(){document.getElementById('loading').classList.remove('show');}
+function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2800);}
+
+startGPS();
+</script>
+</body>
+</html>
