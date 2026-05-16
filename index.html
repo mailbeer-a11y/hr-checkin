@@ -273,15 +273,24 @@ body{font-family:'Segoe UI',sans-serif;background:#f0f0f0;min-height:100vh;displ
 const LIFF_ID = "2010063740-honG4FMh";
 const GAS_URL = "https://script.google.com/macros/s/AKfycbz38705Xib9gsh6I9Ni6pIbDxsQtdbwFYnjEleJvAxyZoPZj3C5E8MPjas0purp4DsTwg/exec";
 
+// ดึงประวัติที่เคยบันทึกไว้ในเครื่องก่อน
+var savedRecords = JSON.parse(localStorage.getItem('records') || '[]');
+// ตรวจสอบว่าประวัติล่าสุดคือ "เช็คอิน (in)" หรือไม่ (เพื่อจำสถานะว่าทำงานอยู่)
+var currentCheckInStatus = savedRecords.length > 0 ? (savedRecords[0].type === 'in') : false;
+
 var state = {
-  lat: null, lng: null, accuracy: null,
-  officeLat: parseFloat(localStorage.getItem('officeLat')||'15.8662189'),
-  officeLng: parseFloat(localStorage.getItem('officeLng')||'100.5847802'),
-  radius: parseFloat(localStorage.getItem('radius')||'300'),
-  inRange: false, isCheckedIn: false,
-  records: JSON.parse(localStorage.getItem('records')||'[]'),
-  company: localStorage.getItem('company')||'ร้านไพศาลพานิช',
-  emp: 'กำลังโหลด...', // เปลี่ยนเป็นกำลังโหลด รอข้อมูลจาก LINE
+  lat: null, lng: null, accuracy: null,
+  
+  // ล็อกค่าพิกัดและข้อมูลบริษัทให้ตายตัว (เอา localStorage ออกเพื่อไม่ให้พนักงานแอบแก้ได้)
+  officeLat: 15.8662189, 
+  officeLng: 100.5847802,
+  radius: 300,         
+  company: 'ร้านไพศาลพานิช', 
+  
+  inRange: false, 
+  isCheckedIn: currentCheckInStatus, // ดึงสถานะล่าสุดมาใช้ เพื่อให้ปุ่มเช็คเอาต์กดได้
+  records: savedRecords,
+  emp: 'กำลังโหลด...', // รอข้อมูลจาก LINE
   userId: null // เพิ่มตัวแปรนี้ไว้เก็บ ID ของ LINE
 };
 
