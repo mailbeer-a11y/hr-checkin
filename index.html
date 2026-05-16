@@ -603,7 +603,16 @@ function fmtDate(d){var m=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','�
 function showLoading(txt){document.getElementById('loading').classList.add('show');document.getElementById('loadingText').textContent=txt||'กำลังโหลด...';}
 function hideLoading(){document.getElementById('loading').classList.remove('show');}
 function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2800);}
+// โค้ดสำหรับเช็คสถานะล่าสุดตอนเปิดแอป
+if (state.isCheckedIn && state.records.length > 0) {
+  updateStatusUI(new Date(state.records[0].time), 'in');
+} else if (!state.isCheckedIn && state.records.length > 0) {
+  updateStatusUI(new Date(state.records[0].time), 'out');
+}
 
+// คำสั่งเริ่มทำงานที่อยู่ล่างสุด
+// initializeLiff(); 
+// startGPS();
 initializeLiff();
 </script>
 </body>
