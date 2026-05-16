@@ -281,7 +281,8 @@ var state = {
   inRange: false, isCheckedIn: false,
   records: JSON.parse(localStorage.getItem('records')||'[]'),
   company: localStorage.getItem('company')||'ร้านไพศาลพานิช',
-  emp: localStorage.getItem('emp')||'จิตติ พุ่มไพศาลชัย'
+  emp: 'กำลังโหลด...', // เปลี่ยนเป็นกำลังโหลด รอข้อมูลจาก LINE
+  userId: null // เพิ่มตัวแปรนี้ไว้เก็บ ID ของ LINE
 };
 
 // Init UI from saved settings
@@ -303,6 +304,44 @@ function calcDist(lat1,lng1,lat2,lng2){
   return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
 
+// ดึงข้อมูลโปรไฟล์จาก LINE
+async function initializeLiff() {
+  try {
+    showLoading('กำลังดึงข้อมูล LINE...');
+    
+    // เริ่มต้นเชื่อมต่อ LIFF
+    await liff.init({ liffId: LIFF_ID });
+
+    // ตรวจสอบว่าผู้ใช้ล็อกอิน LINE ในเว็บเบราว์เซอร์หรือเปิดจากแอป LINE หรือยัง
+    if (!liff.isLoggedIn()) {
+      liff.login(); // บังคับให้เข้าสู่ระบบ
+      return;
+    }
+
+    // เมื่อล็อกอินแล้ว ดึงข้อมูล Profile
+    const profile = await liff.getProfile();
+
+    // อัปเดตข้อมูลลงในระบบของเรา
+    state.emp = profile.displayName; // ชื่อไลน์
+    state.userId = profile.userId;   // รหัสผู้ใช้งาน (UID) นำไปใช้อ้างอิงลง Sheet ได้
+
+    // อัปเดตหน้าจอให้แสดงชื่อไลน์
+    document.getElementById('empName').textContent = 'พนักงาน: ' + state.emp;
+
+    hideLoading();
+    
+    // เมื่อดึงข้อมูล LINE สำเร็จ ค่อยสั่งให้เริ่มจับ GPS
+    startGPS(); 
+
+  } catch (err) {
+    hideLoading();
+    showToast('❌ ไม่สามารถเชื่อมต่อ LINE ได้');
+    console.error('LIFF Init Error:', err);
+    // หากดึงข้อมูล LINE ไม่สำเร็จ ก็ยังอนุญาตให้จับ GPS ต่อไป
+    startGPS(); 
+  }
+}
+    
 // GPS
 function startGPS(){
   if(!navigator.geolocation){
@@ -372,11 +411,10 @@ function doCheckin() {
   if (!state.inRange) { showToast('❌ ไม่สามารถเช็คอินได้ คุณอยู่นอกพื้นที่'); return; }
   showLoading('กำลังส่งข้อมูลไปยัง Google Sheet...');
 
-  var now = new Date();
-  var payload = {
+var payload = {
     name: state.emp,
-    userId: "WebUser", // หากเชื่อม LIFF สำเร็จ สามารถนำ userId มาใส่ตรงนี้ได้
-    type: "เช็คอิน",
+    userId: state.userId, // เปลี่ยนจาก "WebUser" เป็น state.userId เพื่อส่ง ID จริงไป Google Sheet
+    type: "เช็คอิน", // (หรือ "เช็คเอาต์")
     lat: state.lat,
     lng: state.lng,
     inRange: true
@@ -416,13 +454,13 @@ function doCheckout() {
   showLoading('กำลังส่งข้อมูลไปยัง Google Sheet...');
 
   var now = new Date();
-  var payload = {
+var payload = {
     name: state.emp,
-    userId: "WebUser", 
-    type: "เช็คเอาต์",
+    userId: state.userId, // เปลี่ยนจาก "WebUser" เป็น state.userId เพื่อส่ง ID จริงไป Google Sheet
+    type: "เช็คเอาต์", // (หรือ "เช็คเอาต์")
     lat: state.lat,
     lng: state.lng,
-    inRange: state.inRange
+    inRange: true
   };
 
   fetch(GAS_URL, {
@@ -547,7 +585,7 @@ function showLoading(txt){document.getElementById('loading').classList.add('show
 function hideLoading(){document.getElementById('loading').classList.remove('show');}
 function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2800);}
 
-startGPS();
+initializeLiff();
 </script>
 </body>
 </html>
